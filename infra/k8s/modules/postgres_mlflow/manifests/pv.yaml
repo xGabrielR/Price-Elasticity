@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: mlflow
+  name: mlflow-postgres-pv
+  labels:
+    type: local
+    app: mlflow-database
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/hostdir/postgresql

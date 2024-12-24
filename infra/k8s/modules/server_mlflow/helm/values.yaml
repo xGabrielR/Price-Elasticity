@@ -1,0 +1,156 @@
+replicaCount: 1
+
+image:
+  repository: burakince/mlflow
+  pullPolicy: IfNotPresent
+  tag: "2.19.0"
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+initContainers: []
+extraContainers: []
+extraVolumes: []
+extraVolumeMounts: []
+resources: {}
+
+
+# -- A map of arguments and values to pass to the `mlflow server` command
+# Keys must be camelcase. Helm will turn them to kebabcase style.
+extraArgs: {}
+# Number of gunicorn worker processes to handle requests (default: 4).
+  # workers: TEXT
+# A prefix which will be prepended to the path of all static paths.
+# It must always start with slash `/`
+# e.g. /mlflow
+  # staticPrefix: TEXT
+# Additional command line options forwarded to gunicorn processes.
+  # gunicornOpts: TEXT
+# Additional command line options for waitress-serve.
+  # waitressOpts: TEXT
+
+# -- A list of flags to pass to `mlflow server` command
+# Items must be camelcase. Helm will turn them to kebabcase style.
+extraFlags: []
+# If specified, enables serving of artifact uploads, downloads, and list requests by routing these requests
+# to the storage location that is specified by ‘–artifact-destination’ directly through a proxy.
+  # serveArtifacts
+# If specified, configures the mlflow server to be used only for proxied artifact serving.
+  # artifactsOnly
+
+# -- Extra environment variables
+extraEnvVars: {}
+  # MLFLOW_S3_IGNORE_TLS: true
+  # MLFLOW_S3_UPLOAD_EXTRA_ARGS: '{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'
+  # AWS_DEFAULT_REGION: my_region
+  # MLFLOW_S3_ENDPOINT_URL: http://1.2.3.4:9000
+
+# -- Extra secrets for environment variables
+extraSecretNamesForEnvFrom: []
+# - my-mlflow-secrets
+
+
+livenessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 3
+  failureThreshold: 5
+
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 3
+  failureThreshold: 5
+
+# -- This will set the deployment strategy more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+strategy:
+  type: "RollingUpdate"
+  rollingUpdate:
+    maxSurge: "100%"
+    maxUnavailable: 0
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 5000
+  name: http
+  annotations: {}
+
+backendStore:
+  databaseMigration: false
+  databaseConnectionCheck: false
+
+  postgres:
+    enabled: true
+    host: replaced_by_terraform
+    port: 5432
+    database: replaced_by_terraform
+    user: replaced_by_terraform
+    password: replaced_by_terraform
+    driver: "psycopg2"
+
+  mysql:
+    enabled: false
+    host: "" # required
+    port: 3306 # required
+    database: "" # required
+    user: "" # required
+    password: "" # required
+    driver: "pymysql"
+
+artifactRoot:
+  proxiedArtifactStorage: false
+  azureBlob:
+    enabled: false
+    container: "" # required
+    storageAccount: "" # required
+    path: "" # optional
+    connectionString: "" # connectionString or accessKey required
+    accessKey: ""
+
+  s3:
+    enabled: true
+    bucket: replaced_by_terraform
+    path: "mlflow-artifacts"
+    awsAccessKeyId: replaced_by_terraform
+    awsSecretAccessKey: replaced_by_terraform
+  
+  gcs:
+    enabled: false
+    bucket: "" # required
+    path: "" # optional
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+
+serviceMonitor:
+  enabled: false
+  useServicePort: false
+  namespace: monitoring
+  interval: 30s
+  telemetryPath: /metrics
+  labels:
+    release: prometheus
+  timeout: 10s
+  targetLabels: []
+  metricRelabelings: []

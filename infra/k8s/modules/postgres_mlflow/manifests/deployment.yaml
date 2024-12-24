@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mlflow
+  name: mlflow-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow-database
+  template:
+    metadata:
+      labels: 
+        app: mlflow-database
+    spec:
+      volumes:
+      - name: mlflow-pv-data
+        persistentVolumeClaim:
+          claimName: mlflow-postgres-pvc
+      containers:
+        - name: postgres
+          image: 'postgres:16'
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          - name: POSTGRES_USER
+            value: ${MLFLOW_DATABASE_USER}
+          - name: POSTGRES_PASSWORD
+            value: ${MLFLOW_DATABASE_PASSWORD}
+          - name: POSTGRES_DB
+            value: ${MLFLOW_DATABASE_DB}
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: mlflow-pv-data

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mlflow
+  name: mlflow-database-svc
+  labels:
+    app: mlflow-database
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+  selector:
+    app: mlflow-database

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ${STREAMLIT_NAMESPACE}
+  name: streamlit-app-svc
+  labels:
+    app: streamlit-app
+spec:
+  type: NodePort
+  ports:
+    - port: ${STREAMLIT_APP_PORT}
+  selector:
+    app: streamlit-app
