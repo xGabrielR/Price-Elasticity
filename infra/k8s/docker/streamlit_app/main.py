@@ -6,6 +6,7 @@ import streamlit as st
 import plotly_express as px 
 import plotly.graph_objects as go
 
+
 def header() -> None:
     st.header("Olist Price Elasticity")
     st.write("---")
@@ -57,7 +58,8 @@ def get_mlflow_runs(
     return df_runs
 
 def plot_weekly_price_elasticity(
-    df_runs_pivot: pd.DataFrame
+    df_runs_pivot: pd.DataFrame,
+    yaxis_title: str = "Price Elasticity"
 ):
     fig = px.line(
         df_runs_pivot,
@@ -68,8 +70,9 @@ def plot_weekly_price_elasticity(
     fig.update_layout(
         xaxis=dict(tickformat="%Y-%m-%d"),
         xaxis_title="Train Date",
-        yaxis_title="Price Elasticity",
+        yaxis_title=yaxis_title,
         height=500
+        #yaxis_range=[-0.5, 5]
     )
 
     return fig
@@ -87,7 +90,11 @@ def tab_weekly_price_elasticity(
     st.write("Weekly Log Elasticity by Product")
     st.dataframe(df_runs_pivot)
 
-    st.plotly_chart(plot_weekly_price_elasticity(df_runs_pivot))
+    st.plotly_chart(plot_weekly_price_elasticity(df_runs_pivot, "Demand"), use_container_width=True)
+
+    query_params = st.experimental_get_query_params()
+    scroll_position = query_params.get("scroll", ["0"])[0]
+    st.experimental_set_query_params(scroll=scroll_position)
 
 def tab_simulate_demand(
     df_filter_runs: pd.DataFrame
