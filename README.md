@@ -78,29 +78,150 @@ The second reason i will use a simple log log linear regression is because the d
 
 ---
 
+The EDA is a very simple Price x Demand and descriptive statistics of this products to check variation, min, max and most important, some products does not have much samples to work and none have linear relationship, this is a very hard scenario for log log linear price elasticity, but lets go with that!
 
+<img src="assets/products.png">
+
+Is possible to see in more details about this relationships in [modelling & business notebook](notebooks/price_elasticity.ipynb).
+
+I selected top 3 products only, (8c591ab0ca519558779df02023177f44, 165f86fe8b799a708a20ee4ba125c289 and 461f43be3bdf8844e65b62d9ac2c7a5a), lets talk about this products in more details.
+
+I like product "165f86fe8b799a708a20ee4ba125c289" is special, when you increase the price, the demand increase too, is very cool to see, but why ?
+Maybe if i include more features such as sazonality, warehouse quantity on this selling date, etc, other features (features from mind map) maybe is possible to see why this happen!
+Is a very low increase in price, is just cents...
+
+<img src="assets/increase_price_increase_demand.png">
+
+Looking at product "8c591ab0ca519558779df02023177f44", if the price increase 10%, the demand decrease by 9.4%.
+
+```
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          5.2980      1.569      3.377      0.001       2.147       8.449
+price         -0.9626      0.341     -2.821      0.007      -1.648      -0.277
+==============================================================================
+```
+
+Given a price of: 50, the demand is: 4.542.
+Given a price of: 60, the demand is: 3.823.
+Given a price of: 70, the demand is: 3.303.
+Given a price of: 80, the demand is: 2.91.
+Given a price of: 90, the demand is: 2.601.
+Given a price of: 100, the demand is: 2.353.
+Given a price of: 110, the demand is: 2.149.
+Given a price of: 120, the demand is: 1.977.
+Given a price of: 130, the demand is: 1.832.
+Given a price of: 140, the demand is: 1.707.
+Given a price of: 150, the demand is: 1.598.
+Given a price of: 160, the demand is: 1.502.
+Given a price of: 170, the demand is: 1.417.
+Given a price of: 180, the demand is: 1.342.
+Given a price of: 190, the demand is: 1.274.
 
 
 ### 3.2. Week over Week Scenario
 
 ---
 
+I need to re-train the Price Elasticity every week and i need to track the evolution of Elasticity and Price X Demand for this three principal products:
+
+- 8c591ab0ca519558779df02023177f44;
+- 165f86fe8b799a708a20ee4ba125c289;
+- 461f43be3bdf8844e65b62d9ac2c7a5a;
+
+The main ideia is to have a machine learning governance and price elasticity versioning for compare price x demand in past and present, the assumption is, if i increase the price WoW (Week over week), the demand can change and is very important to business keep track of this changes weekly.
+
+Assumption: Today is "2018-01-01", i will first train the Elasticity Regression with OLS for this three products.
+
+For the next three weeks in weekly basis the business need to re-train the price elasticity and compare the results between the weeks. 
+
+Today (2018-01-01) i have all past observations in a database, such as Data Warehouse or Lakehouse, does not matter, the key point is, for the next 7 days up to 2018-01-08 the products can be purchased again and in date 2018-01-08 a new price elasticity model need to be trained for capture new cliets pattern and for compare with last week.
+
+Now its time to check the variation of Demand x Price and compute descriptive statistics with that.
+
+Is possible to check some of the descriptive statistics and elasticity change over time because cliets is purchasing the products and a new price elasticity need to be generated for every week.
+
+For example, for product: 165f86fe8b799a708a20ee4ba125c289, the elasticity change week over week...
+
+```
+==================================================
+Train Week: 2018-01-01
+Elasticity: 0.8299, P-Value: 0.2248, R2: 0.0341
+==================================================
+Train Week: 2018-01-08
+Elasticity: 0.7554, P-Value: 0.2414, R2: 0.0279
+==================================================
+Train Week: 2018-01-15
+Elasticity: 0.6982, P-Value: 0.2628, R2: 0.0240
+```
+
+Is possible to track, versionate and do much other things with mlflow!
+
+
 ## 4.0. Data Infrastructure
 
 ---
+
+The main ideia is to use AWS with Kubernetes and other Open Source Tools. All tools is deployed using Hashicorp Terraform.
+
+<img src="assets/workflow.png">
+
+I use K8s open source tools: Airflow, Jupyter, Mlflow, Streamlit.
+
+For build a weekly price elasticity versioning pipeline, from RAW data to Streamlit serving App. The Data and ML Artifacts is stored in Aws S3 and i use Aws Athena for query the data, joining K8s with Aws Cloud to delivery a Weekly pipeline to compare Price Elasticity from Olist. 
+
+- Jupyer Lab Notebook: One of the Jupyter solutions is a "notebook", a notebook is a webserver IDE supporting a lot of "kernels" (backends), python, julia, R... For this project i get one webserver and deploy in a K8s POD. This pod connect to Aws Athena for fetch trusted and curated data for Data Science exploration.
+- Airflow Stack: Airflow is an open source project for orchestrating workflows with a use community support connections (Aws, K8s, ...). Workflows are designed in a Direct acyclic graph (DAG) way, for this project i use Airflow to schedule in a weekly basis Data Engineering pipeline and Machine Learning re-train.
+- Mlflow Server: Mlflow is a Python framework for standardize ML lifecycle. With this With this tool I can version, publish and manage trained estimators from Sklearn, Keras, Spark, and others...
+- Streamlit: The final product of my project is a simple Streamlit App in a K8s deployment. In this app the user can select any product and any training date to validate and compare results for multiple versioned machine learning models.
+
+Now, in AWS i used some key services:
+
+Aws S3 for object Storage in three consumption layers (landing, trusted and curated).
+
+- landing: In daily basis, weekly basis or near real time the Raw data is sent to a repository called data lake. The data lake can be organized in a structure called "layers". Each layer can have a certain kind of processing for other consume tools to fetch this data. In general, the "landing" layer is the first storage step between  application and data lake.
+- raw: The raw data is stored at landing layer, now i will get this data, apply a simple processing such as add metadata and store in a new layer in optimized format like parquet or orc. The new layer is called "RAW", because i only moved data into Lakehouse file format and created some metadata (data about data). The metadata is provided in two ways - Apache Iceberg and In Code;
+- trusted: Trusted is another layer. The main objective of this layer is get the data from previous layer (raw) and apply cleaning, conformation, unification os multiple raw tables into one clean and complete table, this table is called OBT (One Big Table). This data is "Trusted", you can use for answer business questions.
+- curated: Trusted is the final layer. You have some clean and
+conformed tables in trusted layer, now you can use this data and answer business questions, create aggregations, sums, counts... Is possible to write the business question table in a layer called curated OR use tools such as Aws Athena (Data Virtualization Engine) to query trusted tables and fetch results.
 
 ### 4.1. OLTP and ETL
 
 ---
 
+The main source of transaction data is stored in a solution called OLTP (Online Analytical Processing), in simple words is a traditional CRUD database. I selected this two tables (orders and items) and stored in landing in parquet format, this can be done using a Kubernetes POD with kind: Job for schedule a batch etl or real time with deployment extraction pod, i used a simple batch to fetch data from OLTP and store in landing parquet files, to simplify i copy this files and put in `landing` forlder of this git repo to terraform just copy this files if you like to reproduce this experiment.
+
+Now, to build a cleaning pipeline i used only AWS Glue with Pyspark simple jobs, this jobs will create apache iceberg format in Raw and clean and conform data in Trusted S3 layers, the metadata is found on Aws Glue Database (Hive metastore from AWS), is possible to use Spark on K8s and Hive Metastore deployment istead of Aws Glue and Glue Catalog Database.
+
+<img src="assets/aws_glue_job">
+
 ### 4.2. Data Science
 
 ---
+
+I will use this step for two porpouse, talk about ML Experiments and Serving the solution using streamlit.
+
+
+<img src="assets/mlflow_experiments.png">
+
+<img src="assets/streamlit_simulate_demand.png">
+
+<img src="assets/streamlit_weekly_price_elasticity.png">
+
 
 ### 4.3. Weekly Orchestration
 
 ---
 
+All orchestration and weekly schedule is using Airflow, in airflow you can re-run past runs with catchup=True, is possible to see all past executions in this prints below, is amazing, the complete workflow is here!
+
+<img src="assets/dagrun_1.png">
+<img src="assets/dagrun_2.png">
+<img src="assets/dagrun_3.png">
+<img src="assets/dagrun_4.png">
+
+The airflow will execute batch extraction from source system (OLTP), Aws Glue for clean the data and re-train machine learning model weekly. 
 
 
 ## 5.0. Business Results
