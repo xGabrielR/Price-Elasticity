@@ -200,12 +200,23 @@ Now, to build a cleaning pipeline i used only AWS Glue with Pyspark simple jobs,
 
 ---
 
-I will use this step for two porpouse, talk about ML Experiments and Serving the solution using streamlit.
+I will use the topic Data Science for two main objectives, talk about ML Experiments and Serving the solution using streamlit.
 
+Mlflow server is a kubernetes deployment inside k8s using community helm chart, the mlflow artifacts is stored in Aws S3 bucket and experiments metadata in PostgreSQL inside K8s, the definition of runs (each machine learning train using mlflow) is organized in a very simple name pattern `estimator-train_date-product_id` with this pattern i can easy filter with `search_runs` using a mlflow client connection to mlflow server.
+
+Is possible to see in print below all training experiments for each product_id, is possible to have nesting runs and more complex tree-structure to organize machine learning runs in each experiment and visualize this structure in mlflow webserver ui.
 
 <img src="assets/mlflow_experiments.png">
 
-<img src="assets/streamlit_simulate_demand.png">
+Mlflow is the main solution for track price elasticity version and key parameters and metrics such as slope, constants and other linear regression coeficients.
+
+Now, lets talk about the serving solution, is very common in today world the streamlit applications for deploy any kind of data science or webserver solution, its easy and simple to start and very user frendly interface and rich community for python users, behind the door, my streamlit app is a simple stateless webserver service that connect to mlflow server using k8s services, fetch experiments and show on a visual interface for users. In my app exists two main tabs, `simulate demand` and `weekly price elasticity`.
+
+Is possible to provide a price, for example 100 and the line plot show the demand for all of the three products in all existing training week dates, is possible to compare elasticity between model version and products.
+
+<img src="assets/price_x_demand.gif">
+
+Another line plot is show price elasticity over product and version train date.
 
 <img src="assets/streamlit_weekly_price_elasticity.png">
 
@@ -214,7 +225,7 @@ I will use this step for two porpouse, talk about ML Experiments and Serving the
 
 ---
 
-All orchestration and weekly schedule is using Airflow, in airflow you can re-run past runs with catchup=True, is possible to see all past executions in this prints below, is amazing, the complete workflow is here!
+All orchestration and weekly schedule is using Airflow, in airflow you can re-run past runs with `catchup=True`, is possible with this feature simulate past runs and get this execution dates of a task instance and send with enviroment variable to re-training batch job inside K8s to see and simulate every use case that you need to go back in past and explore "what is in this past" all past executions in this prints below, is amazing, the complete workflow is here and i can simulate production weekly use case!
 
 <img src="assets/dagrun_1.png">
 <img src="assets/dagrun_2.png">
