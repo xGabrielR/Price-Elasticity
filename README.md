@@ -194,7 +194,7 @@ The main source of transaction data is stored in a solution called OLTP (Online 
 
 Now, to build a cleaning pipeline i used only AWS Glue with Pyspark simple jobs, this jobs will create apache iceberg format in Raw and clean and conform data in Trusted S3 layers, the metadata is found on Aws Glue Database (Hive metastore from AWS), is possible to use Spark on K8s and Hive Metastore deployment istead of Aws Glue and Glue Catalog Database.
 
-<img src="assets/aws_glue_job">
+<img src="assets/aws_glue_job.png">
 
 ### 4.2. Data Science
 
