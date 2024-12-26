@@ -169,6 +169,8 @@ Is possible to track, versionate and do much other things with mlflow!
 
 Mind Map is a tool to help in feature engineering and integrate teams, is a very good tool for undertand business process that generate an event of interest such as order, product selling, promotion, discount and other things that generate my interest event (model price elasticity), In the mind map I will create branches that are factors that influence the event of interest in some way, whether positively or negatively. This way I can understand which attributes will help the demand estimator.
 
+<img src="assets/mind_map.png">
+
 ## 4.0. Data Infrastructure
 
 ---
