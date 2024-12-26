@@ -56,6 +56,10 @@ The solution strategy is to build a most simple data infrastructure to solution 
 
 I have CRISP in my toolkit for rapid development of solutions and problem solving techniques, based on this, the author "Eric Ries" has a phrase in the book lean startup, "Vision leads to direction" and shows a cyclical process for startup fast projects solutions and can be applied to data science projects too!!!
 
+CRIPS is published in 1999 to standardize data mining processes across industries, it has since become the most common methodology for data mining, analytics, and data science projects. Data science teams that combine a loose implementation of CRISP-DM with overarching team-based agile project management approaches will likely see the best results. CRISP-DM indirectly advocates agile principles and practices by stating: "The sequence of the phases is not rigid. Moving back and forth between different phases is always required. The outcome of each phase determines which phase, or particular task of a phase, has to be performed next." Thus if you follow CRISP-DM in a more flexible way, iterate quickly, and layer in other agile processes, you’ll wind up with an agile approach.
+
+Source: Data Science PM.
+
 
 ## 3.0. Price Elasticity Exploration
 
@@ -158,6 +162,12 @@ Elasticity: 0.6982, P-Value: 0.2628, R2: 0.0240
 
 Is possible to track, versionate and do much other things with mlflow!
 
+
+### 3.3. Mind Map
+
+---
+
+Mind Map is a tool to help in feature engineering and integrate teams, is a very good tool for undertand business process that generate an event of interest such as order, product selling, promotion, discount and other things that generate my interest event (model price elasticity), In the mind map I will create branches that are factors that influence the event of interest in some way, whether positively or negatively. This way I can understand which attributes will help the demand estimator.
 
 ## 4.0. Data Infrastructure
 
