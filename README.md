@@ -31,7 +31,7 @@
 
 Source: Wikipedia.
 
-Business Problem: In Olist, products is selled by a people called `seller` and exists some key products to drive sales, such as top 10% or top 20% most selled products, this products can have unique pattern and some mining can be done with this orders data. Based on this context, olist receive a fee (Seller sell products and olist receive mayme 10% ~ 25% of product price), a fee is how a marketplace receive money for joining sellers and customers. The products can have promo, discount, inflation adjust and other random events that change product price, this change can affect demand, people cannot buy more this product because is very expensive or people will buy a LOT of this product because have a very low price, this phenomenon can be easily seen in traditional grocery, older products have a very low price (in may cases) in promo or with discount to sell very fast because new and fresh products is available on warehouse just waiting to have space in product shelf to be placed and price up again.
+**Business Problem**: In Olist, products is selled by a people called `seller` and exists some key products to drive sales, such as top 10% or top 20% most selled products, this products can have unique pattern and some mining can be done with this products + orders data. Based on this context, olist is a marketplace and receive a fee (Seller sell products and olist receive maybe 10% ~ 25% of product price), a fee is how a marketplace receive money for joining sellers and customers. The products can have promo, discount, inflation adjust and other random events that change product price, this change can affect demand, people cannot buy more of a given product because the price is very expensive or people will buy a LOT of this product because have a very low price, this phenomenon can be easily seen in traditional grocery, older products have a very low price (in may cases) in promo or with discount to sell very fast because new and fresh products is available on warehouse just waiting to have space in product shelf to be placed and price up again.
 
 "A good's price elasticity of demand (PED) is a measure of how sensitive the quantity demanded is to its price. When the price rises, quantity demanded falls for almost any good (law of demand), but it falls more for some than for others. The price elasticity gives the percentage change in quantity demanded when there is a one percent increase in price, holding everything else constant. If the elasticity is −2, that means a one percent price rise leads to a two percent decline in quantity demanded. Other elasticities measure how the quantity demanded changes with other variables (e.g. the income elasticity of demand for consumer income changes)".   
 
@@ -48,7 +48,7 @@ Now, you need to build a infrastructure and a solution in weekly basis scenario 
 
 ---
 
-The solution strategy is to build a most simple data infrastructure to solution this problem, i using AWS products and Open Source tools to design a infrastructure for: data engineering (collect, conform and prepare data), data science (collect clean and complete data to build price elasticity solution) and mlops (re-train and versioning price elasticity solutions).
+The solution strategy is to build a most simple data infrastructure to solve this problem, I selected key AWS services and Open Source tools to design a infrastructure for: data engineering (collect, conform and prepare data), data science (build price elasticity solution + eda + final delivery product) and mlops (re-train and version price elasticity solutions estimators).
 
 ### 2.1. Problem Solving Methodology
 
@@ -67,13 +67,13 @@ Source: Data Science PM.
 
 Exists some solutions for Price Elasticity in marketing today.
 
-- Linear Regression (Additive): Is the most easy and simple, i just need Price and Units selled to build a linear model to estimate elasticity using midpoint formula [ (avg price / avg unit) * slope ], this is a simple and very fast approach because exists some "pocket equations" to solve that.
+- Linear Regression (Additive): Is the most easy and simple, i just need Price and Units selled to build a linear model to estimate elasticity using midpoint formula [ (avg price / avg unit) * slope ], this is a simple and very fast approach because exists some "pocket equations" to get simple two variable linear regression equation.
 - Linear Regression with Exog features (Additive): This requires feature engineering and "exog" / extra features to build a simple linear regression, now with extra features, price and demand.
 - Log Log Regression: This is alterantive to use Log of price and Log of demand, using this solution the slope of linear regression is percentage changes a.k.a elasticity, you can use extra features (exog features or not) for add more coeficients to linear regression estimation of PE.
 - Linear Regression with Regularization + Exog Features: Is possible to apply regularization to reduce multi-colinearity when you using exog features.
-- Machine Learning: Is possible to compute price elasticity with traditional Sklearn estimators (Decision Tree, Random Forest...).
+- Machine Learning: Is possible to compute price elasticity with traditional Sklearn estimators (Decision Tree, Random Forest...) using machine learning to create a demand model. If you need explain to customer why this price is generated you can lose interpretation when using a very black box estimator. 
 
-I will follow using Log Log Regression without extra exog features, with this solution first, because is a great solution and easy to estimate (slope is elasticity), i w8ill follow this approach because I do not need to deep dive in feature engineering in this first CRISP solution. With CRISP i need to delivery a very fast MVP solution to validate project and next CRISP iterations i deep dive into other steps of the solution (Data Engineering, Data Science and Mlops), but for my first delivery i will follow a very simple scenario. 
+I will follow using Log Log Regression without extra exog features, this is my first solution, because is a great used solution today and easy to estimate (slope is elasticity), i will follow this approach because I do not need to deep dive in feature engineering in this first CRISP solution. With CRISP i need to delivery a very fast MVP solution to validate project and next CRISP iterations i deep dive into other steps of the solution (Data Engineering, Data Science and Mlops), but for my first delivery i will follow a very simple approach. 
 
 The second reason i will use a simple log log linear regression is because the dataset have very low samples, is very hard to fit a random forest with small sample, but is possible. 
 
@@ -82,7 +82,7 @@ The second reason i will use a simple log log linear regression is because the d
 
 ---
 
-The EDA is a very simple Price x Demand and descriptive statistics of this products to check variation, min, max and most important, some products does not have much samples to work and none have linear relationship, this is a very hard scenario for log log linear price elasticity, but lets go with that!
+The EDA is a very simple Price x Demand and descriptive statistics of this products to check variation, min, max and a most important key discovery -> some products does not have much samples to work and any product have linear relationship, this is a very hard scenario for log log linear price elasticity, but lets go with that!
 
 <img src="assets/products.png">
 
@@ -91,12 +91,12 @@ Is possible to see in more details about this relationships in [modelling & busi
 I selected top 3 products only, (8c591ab0ca519558779df02023177f44, 165f86fe8b799a708a20ee4ba125c289 and 461f43be3bdf8844e65b62d9ac2c7a5a), lets talk about this products in more details.
 
 I like product "165f86fe8b799a708a20ee4ba125c289" is special, when you increase the price, the demand increase too, is very cool to see, but why ?
-Maybe if i include more features such as sazonality, warehouse quantity on this selling date, etc, other features (features from mind map) maybe is possible to see why this happen!
+Maybe if i include more features such as sazonality, warehouse quantity on this selling date, etc. Other features (features from mind map) maybe is possible to see why this happen!
 Is a very low increase in price, is just cents...
 
 <img src="assets/increase_price_increase_demand.png">
 
-Looking at product "8c591ab0ca519558779df02023177f44", if the price increase 10%, the demand decrease by 9.4%.
+Looking at product "8c591ab0ca519558779df02023177f44", estimating price elasticity with OLS i get this results: if the price increase 10%, the demand decrease by 9.4%.
 
 ```
 ==============================================================================
@@ -134,7 +134,7 @@ I need to re-train the Price Elasticity every week and i need to track the evolu
 - 165f86fe8b799a708a20ee4ba125c289;
 - 461f43be3bdf8844e65b62d9ac2c7a5a;
 
-The main ideia is to have a machine learning governance and price elasticity versioning for compare price x demand in past and present, the assumption is, if i increase the price WoW (Week over week), the demand can change and is very important to business keep track of this changes weekly.
+The main ideia is to have a machine learning governance and price elasticity versions for compare price x demand in past and present, the assumption is, if i increase the price WoW (Week over week), the demand can change and is very important to business keep track of this changes weekly.
 
 Assumption: Today is "2018-01-01", i will first train the Elasticity Regression with OLS for this three products.
 
@@ -175,7 +175,7 @@ Mind Map is a tool to help in feature engineering and integrate teams, is a very
 
 ---
 
-The main ideia is to use AWS with Kubernetes and other Open Source Tools. All tools is deployed using Hashicorp Terraform.
+The main ideia is to use develop a architecture with AWS, Kubernetes and other Open Source Tools. All tools (aws service and kubernetes deployments) is deployed using Hashicorp Terraform.
 
 <img src="assets/workflow.png">
 
@@ -202,9 +202,9 @@ conformed tables in trusted layer, now you can use this data and answer business
 
 ---
 
-The main source of transaction data is stored in a solution called OLTP (Online Analytical Processing), in simple words is a traditional CRUD database. I selected this two tables (orders and items) and stored in landing in parquet format, this can be done using a Kubernetes POD with kind: Job for schedule a batch etl or real time with deployment extraction pod, i used a simple batch to fetch data from OLTP and store in landing parquet files, to simplify i copy this files and put in `landing` forlder of this git repo to terraform just copy this files if you like to reproduce this experiment.
+The main source of transaction data is stored in a solution called OLTP (Online Analytical Processing), in simple words is a traditional CRUD database. I selected this two tables (orders and items) and stored in landing in parquet format, this can be done using a Kubernetes POD with kind: Job for schedule a batch etl or real time with deployment extraction pod, i used a simple batch to fetch data from OLTP and store in landing parquet files, to simplify i copy this files and put in `landing` folder of this git repo to terraform just copy this files if you like to reproduce this experiment.
 
-Now, to build a cleaning pipeline i used only AWS Glue with Pyspark simple jobs, this jobs will create apache iceberg format in Raw and clean and conform data in Trusted S3 layers, the metadata is found on Aws Glue Database (Hive metastore from AWS), is possible to use Spark on K8s and Hive Metastore deployment istead of Aws Glue and Glue Catalog Database.
+Now, to build a cleaning pipeline i used only AWS Glue with Spark simple jobs, this jobs will create apache iceberg format in Raw and clean and conform data in Trusted S3 layer, the metadata is found on Aws Glue Database (Hive metastore from AWS), is possible to use Spark on K8s and Hive Metastore deployment istead of Aws Glue and Glue Catalog Database.
 
 <img src="assets/aws_glue_job.png">
 
@@ -216,13 +216,13 @@ I will use the topic Data Science for two main objectives, talk about ML Experim
 
 Mlflow server is a kubernetes deployment inside k8s using community helm chart, the mlflow artifacts is stored in Aws S3 bucket and experiments metadata in PostgreSQL inside K8s, the definition of runs (each machine learning train using mlflow) is organized in a very simple name pattern `estimator-train_date-product_id` with this pattern i can easy filter with `search_runs` using a mlflow client connection to mlflow server.
 
-Is possible to see in print below all training experiments for each product_id, is possible to have nesting runs and more complex tree-structure to organize machine learning runs in each experiment and visualize this structure in mlflow webserver ui.
+Is possible to see in print below all training experiments for each product_id, you can have nesting runs and more complex tree-structure to organize machine learning runs in each experiment and visualize this structure in mlflow webserver ui.
 
 <img src="assets/mlflow_experiments.png">
 
-Mlflow is the main solution for track price elasticity version and key parameters and metrics such as slope, constants and other linear regression coeficients.
+Mlflow is the main solution for track price elasticity version and key parameters and metrics such as slope, constants and other linear regression coeficients, mlflow provide tools for compare runs and visualize machine learning artifacts inside mlwlfow webserver ui.
 
-Now, lets talk about the serving solution, is very common in today world the streamlit applications for deploy any kind of data science or webserver solution, its easy and simple to start and very user frendly interface and rich community for python users, behind the door, my streamlit app is a simple stateless webserver service that connect to mlflow server using k8s services, fetch experiments and show on a visual interface for users. In my app exists two main tabs, `simulate demand` and `weekly price elasticity`.
+Now, lets talk about the serving solution, is very common today the streamlit applications for deploy any kind of data science or webserver solution, its easy and simple to start and very user frendly interface and rich community for python users, behind the door, my streamlit app is a simple stateless webserver service that connect to mlflow server using k8s services, fetch experiments and show on a visual interface for users. In my app exists two main tabs, `simulate demand` and `weekly price elasticity`.
 
 Is possible to provide a price, for example 100 and the line plot show the demand for all of the three products in all existing training week dates, is possible to compare elasticity between model version and products.
 
